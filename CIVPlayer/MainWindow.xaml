@@ -5,8 +5,38 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CIVPlayer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="CIV5 Player" Height="350" Width="525">
     <Grid>
-        
+        <TabControl x:Name="tabControl">
+            <TabItem Header="Helyzet" HorizontalAlignment="Left" Width="100">
+                <Grid Background="#FFE5E5E5">
+                    <Image x:Name="image" HorizontalAlignment="Center" Margin="0,150,0,0" VerticalAlignment="Bottom"
+                           Source="Resources/Civ5_logo.png" MaxHeight="130"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Beállítások">
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="4*" />
+                        <ColumnDefinition Width="12*" />
+                        <ColumnDefinition Width="4*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="2*" />
+                        <RowDefinition Height="3*" />
+                        <RowDefinition Height="3*" />
+                        <RowDefinition Height="8*" />
+                    </Grid.RowDefinitions>
+                    <Label x:Name="label" Grid.Row="1" Grid.Column="1" Content="Dropbox mappa:" VerticalAlignment="Top" Height="30"/>
+                    <TextBox x:Name="textBox" Grid.Row="1" Grid.Column="2" TextWrapping="Wrap" Text="TextBox" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="25" Margin="20,2,20,2"/>
+                    <Button x:Name="button" Grid.Row="1" Grid.Column="3" Content="Button" VerticalAlignment="Top" Height="30" HorizontalAlignment="Left" Width="70"/>
+                    <Label x:Name="label_Copy" Grid.Row="2" Grid.Column="1" Content="CIV5 mappa:" VerticalAlignment="Top" Height="30"/>
+                    <TextBox x:Name="textBox_Copy" Grid.Row="2" Grid.Column="2" TextWrapping="Wrap" Text="Másik TextBox" VerticalAlignment="Top" Height="25" Margin="20,2,20,2"/>
+                    <Button x:Name="button_Copy" Grid.Row="2" Grid.Column="3" Content="Button" VerticalAlignment="Top" Height="30" HorizontalAlignment="Left" Width="70"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
     </Grid>
 </Window>
