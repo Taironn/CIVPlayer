@@ -57,6 +57,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Source\AppConfiguaraion.cs" />
+    <Compile Include="Source\AppMain.cs" />
+    <Compile Include="Source\GameConfig.cs" />
+    <Compile Include="Source\StateAPI.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

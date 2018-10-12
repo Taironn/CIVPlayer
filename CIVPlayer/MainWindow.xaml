@@ -8,7 +8,7 @@
         Title="CIV5 Player" Height="350" Width="525">
     <Grid>
         <TabControl x:Name="tabControl">
-            <TabItem Header="Helyzet" HorizontalAlignment="Left" Width="100">
+            <TabItem Header="Helyzet">
                 <Grid Background="#FFE5E5E5">
                     <Image x:Name="image" HorizontalAlignment="Center" Margin="0,150,0,0" VerticalAlignment="Bottom"
                            Source="Resources/Civ5_logo.png" MaxHeight="130"/>
@@ -26,14 +26,30 @@
                         <RowDefinition Height="2*" />
                         <RowDefinition Height="3*" />
                         <RowDefinition Height="3*" />
-                        <RowDefinition Height="8*" />
+                        <RowDefinition Height="3*" />
+                        <RowDefinition Height="5*" />
                     </Grid.RowDefinitions>
-                    <Label x:Name="label" Grid.Row="1" Grid.Column="1" Content="Dropbox mappa:" VerticalAlignment="Top" Height="30"/>
-                    <TextBox x:Name="textBox" Grid.Row="1" Grid.Column="2" TextWrapping="Wrap" Text="TextBox" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="25" Margin="20,2,20,2"/>
-                    <Button x:Name="button" Grid.Row="1" Grid.Column="3" Content="Button" VerticalAlignment="Top" Height="30" HorizontalAlignment="Left" Width="70"/>
-                    <Label x:Name="label_Copy" Grid.Row="2" Grid.Column="1" Content="CIV5 mappa:" VerticalAlignment="Top" Height="30"/>
-                    <TextBox x:Name="textBox_Copy" Grid.Row="2" Grid.Column="2" TextWrapping="Wrap" Text="Másik TextBox" VerticalAlignment="Top" Height="25" Margin="20,2,20,2"/>
-                    <Button x:Name="button_Copy" Grid.Row="2" Grid.Column="3" Content="Button" VerticalAlignment="Top" Height="30" HorizontalAlignment="Left" Width="70"/>
+                    <Label x:Name="label1" Grid.Row="1" Grid.Column="1" Content="Dropbox mappa:" VerticalAlignment="Top" Height="30"/>
+                    <TextBox x:Name="textBox1" Grid.Row="1" Grid.Column="2" Text="{Binding DropBoxFolder, Mode = OneWay}" VerticalAlignment="Top" Height="25" Margin="20,2,20,2"/>
+                    <Button x:Name="button1" Grid.Row="1" Grid.Column="3" Content="Tallózás" VerticalAlignment="Top" Height="30" HorizontalAlignment="Left" Width="70" Click="button1_Click"/>
+                    <Label x:Name="label2" Grid.Row="2" Grid.Column="1" Content="CIV5 mappa:" VerticalAlignment="Top" Height="30"/>
+                    <TextBox x:Name="textBox2" Grid.Row="2" Grid.Column="2" Text="{Binding CIV5Folder, Mode = OneWay}" VerticalAlignment="Top" Height="25" Margin="20,2,20,2"/>
+                    <Button x:Name="button2" Grid.Row="2" Grid.Column="3" Content="Tallózás" VerticalAlignment="Top" Height="30" HorizontalAlignment="Left" Width="70" Click="button2_Click"/>
+                    <Label x:Name="label3" Grid.Row="3" Grid.Column="1" Content="Játékos neve:" VerticalAlignment="Top" Height="30"/>
+                    <TextBox x:Name="textBox3" Grid.Row="3" Grid.Column="2" Text="{Binding PlayerName, Mode = TwoWay}" VerticalAlignment="Top" Height="25" Margin="20,2,20,2"/>
+                    <Button x:Name="button3" Grid.Row="3" Grid.Column="3" Content="Mentés" VerticalAlignment="Top" Height="30" HorizontalAlignment="Left" Width="70"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Játék">
+                <Grid Background="#FFE5E5E5">
+                    <ListView x:Name="gameConfigListView" Margin="10">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Sorrend" Width="120" DisplayMemberBinding="{Binding Number}" />
+                                <GridViewColumn Header="Játékos" Width="120" DisplayMemberBinding="{Binding Player}" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
                 </Grid>
             </TabItem>
         </TabControl>
