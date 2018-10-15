@@ -9,7 +9,8 @@
     <Grid>
         <TabControl x:Name="tabControl">
             <TabItem Header="Helyzet">
-                <Grid Background="#FFE5E5E5">
+                <Grid x:Name="StatusGrid" Background="#FFE5E5E5">
+                    <Label x:Name="CurrentPlayerLabel" Content="{Binding CurrentPlayer}" ContentStringFormat=" {0} köre van" VerticalAlignment="Top" Height="100" Margin="50,50,50,0" FontSize="30" HorizontalContentAlignment="Center"/>
                     <Image x:Name="image" HorizontalAlignment="Center" Margin="0,150,0,0" VerticalAlignment="Bottom"
                            Source="Resources/Civ5_logo.png" MaxHeight="130"/>
                 </Grid>

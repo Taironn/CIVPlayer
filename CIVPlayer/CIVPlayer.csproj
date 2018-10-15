@@ -34,6 +34,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Statue_Of_Liberty.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -106,6 +109,10 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Statue_Of_Liberty.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\notification.wav" />
+    <Resource Include="Statue_Of_Liberty.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

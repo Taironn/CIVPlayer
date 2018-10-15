@@ -18,11 +18,17 @@ namespace CIVPlayer.Source
 
 		public string PlayerName { get; set; }
 
+		public bool Valid { get; set; }
+
+		public bool EverythingSetup { get; set; }
+
 		public AppConfiguaraion()
 		{
 			CIV5Folder = "";
 			DropBoxFolder = "";
 			PlayerName = "";
+			Valid = false;
+			EverythingSetup = false;
 		}
 
 	}

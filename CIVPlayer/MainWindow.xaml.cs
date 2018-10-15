@@ -27,7 +27,7 @@ namespace CIVPlayer
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-		NotifyIcon tray_icon;
+		public NotifyIcon tray_icon;
 		bool closing = false;
 		private AppMain appMain;
 		public MainWindow()
