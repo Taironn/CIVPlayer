@@ -17,6 +17,9 @@ namespace CIVPlayer.Source
 		public string fileNameEnding = "jon";
 		public string saveExtension = "Civ5Save";
 
+		private static readonly log4net.ILog log =
+			log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+		
 		public Dictionary<string, string> RawData
 		{
 			get
@@ -33,17 +36,30 @@ namespace CIVPlayer.Source
 
 		public void UpdateFromRaw()
 		{
+			log.Info("Updating Game config from dropbox config file");
 			players = new List<string>();
-			players = rawData["players"].Split(';').ToList();
-			gameConfigRows.Clear();
-			for (int i = 0; i < players.Count; i++)
+			try
 			{
-				gameConfigRows.Add(new GameConfigListRow(i + 1, players[i]));
+				players = rawData["players"].Split(';').ToList();
+				gameConfigRows.Clear();
+				for (int i = 0; i < players.Count; i++)
+				{
+					gameConfigRows.Add(new GameConfigListRow(i + 1, players[i]));
+				}
+				dropBoxExtendedPath = rawData["dropboxextendedpath"];
+				fileNameEnding = rawData["fileending"];
+				saveExtension = rawData["saveextension"];
+				tempSaveExtendedPath = rawData["tempsaveextendedpath"];
+			}catch (Exception e)
+			{
+				log.Error("Dropbox config file incorrect!",e);
+				log.Info("Config file should have:");
+				log.Info("players=x,y,z");
+				log.Info("dropboxextendedpath=\foldername");
+				log.Info("fileending=jon");
+				log.Info("saveextension=.Civ5Save");
+				log.Info("tempsaveextendedpath=\foldername");
 			}
-			dropBoxExtendedPath = rawData["dropboxextendedpath"];
-			fileNameEnding = rawData["fileending"];
-			saveExtension = rawData["saveextension"];
-			tempSaveExtendedPath = rawData["tempsaveextendedpath"];
 		}
 
 		public GameConfig()

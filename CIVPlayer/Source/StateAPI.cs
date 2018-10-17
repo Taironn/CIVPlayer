@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CIVPlayer.Source
-{   //TODO
-	//Több rákérdezést lekezelni -> eventből timestampet kéne kiszedni
-	//Temp mappa logolás
+{   
 	class StateAPI
 	{
 		private static int ioSleepTime = 1000;
@@ -34,6 +32,9 @@ namespace CIVPlayer.Source
 		private FileSystemWatcher dropBoxFolderWatcher;
 		private FileSystemWatcher gameFolderWatcher;
 
+		private static readonly log4net.ILog log =
+			log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
 		public string CurrentPlayer
 		{
 			get
@@ -42,24 +43,27 @@ namespace CIVPlayer.Source
 			}
 			set
 			{
-				alreadyCopied = false;
-				if (currentPlayer == appConfig.PlayerName && value != appConfig.PlayerName)
+				lock (currentPlayer)
 				{
-					UserPassed();
-				}
-				if (currentPlayer != value)
-				{
-					if (value == appConfig.PlayerName)
+					log.Info("Current player changed from " + currentPlayer + " to " + value);
+					alreadyCopied = false;
+					if (currentPlayer == appConfig.PlayerName && value != appConfig.PlayerName)
 					{
-						CopySaveFromDropBoxtoPC();
-						currentPlayer = value;
-						CurrentPlayerChanged();
-						UsersTurn();
+						UserPassed();
 					}
-					else
+					if (currentPlayer != value)
 					{
-						currentPlayer = value;
-						CurrentPlayerChanged();
+						if (value == appConfig.PlayerName)
+						{
+							CopySaveFromDropBoxtoPC();
+							currentPlayer = value;
+							CurrentPlayerChanged();
+							UsersTurn();
+						} else
+						{
+							currentPlayer = value;
+							CurrentPlayerChanged();
+						}
 					}
 				}
 			}
@@ -72,9 +76,11 @@ namespace CIVPlayer.Source
 			errFunc = ef;
 			invokeFunction = invokefunc;
 			dropBoxFolderWatcher = null;
+			currentPlayer = "";
 		}
 		public void Initialize()
 		{
+			log.Info("Initializing StateAPI");
 			alreadyCopied = false;
 			lastGameFolderChecked = DateTime.Now.AddSeconds(-10);
 			if (!checkConfigFoldersExistence())
@@ -86,24 +92,31 @@ namespace CIVPlayer.Source
 			//dropBoxFolderWatcher.NotifyFilter = NotifyFilters.Attributes |  NotifyFilters.LastWrite;
 			dropBoxFolderWatcher.Filter = "*" + gameConfig.fileNameEnding + gameConfig.saveExtension;
 			dropBoxFolderWatcher.EnableRaisingEvents = true;
+			dropBoxFolderWatcher.InternalBufferSize = 1048576;
 			dropBoxFolderWatcher.Changed += DropBoxFolderChanged;
 			dropBoxFolderWatcher.Created += DropBoxFolderChanged;
 			dropBoxFolderWatcher.Renamed += DropBoxFolderChanged;
+			dropBoxFolderWatcher.Error += OnError;
+			log.Info("DropBoxFolderWatcher watching at: " + dropBoxFolderWatcher.Path);
 
 			gameFolderWatcher = new FileSystemWatcher();
 			gameFolderWatcher.Path = appConfig.CIV5Folder;
 			//gameFolderWatcher.NotifyFilter = NotifyFilters.Attributes | NotifyFilters.LastWrite;
 			gameFolderWatcher.Filter = "*" + gameConfig.saveExtension;
 			gameFolderWatcher.EnableRaisingEvents = true;
+			gameFolderWatcher.InternalBufferSize = 1048576;
 			//gameFolderWatcher.Renamed += GameFolderChanged;
 			gameFolderWatcher.Created += GameFolderChanged;
 			gameFolderWatcher.Changed += GameFolderChanged;
+			gameFolderWatcher.Error += OnError;
+			log.Info("GameFolderWatcher watching at: " + gameFolderWatcher.Path);
 
 			load();
 
 		}
 		private void load()
 		{
+			log.Debug("Updating status from DropBox");
 			DirectoryInfo dInfo = new DirectoryInfo(appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath);
 			if (!dInfo.Exists)
 			{
@@ -125,6 +138,7 @@ namespace CIVPlayer.Source
 
 		private void CopySaveFromDropBoxtoPC()
 		{
+			log.Info("Copying save file from dropbox to PC");
 			gameFolderWatcher.EnableRaisingEvents = false;
 			Thread.Sleep(ioSleepTime);
 			activeDropBoxSaveFile.CopyTo(appConfig.CIV5Folder + "/" + activeDropBoxSaveFile.Name, true);
@@ -133,11 +147,13 @@ namespace CIVPlayer.Source
 
 		public void DropBoxFolderChanged(object sender, FileSystemEventArgs e)
 		{
+			log.Debug("DropBoxFolderChangedEvent arrived");
 			load();
 		}
 
 		public void GameFolderChanged(object sender, FileSystemEventArgs e)
 		{
+			log.Debug("GameFolderChangedEvent arrived");
 			if (!(CurrentPlayer == appConfig.PlayerName) || alreadyCopied || (DateTime.Now - lastGameFolderChecked).TotalSeconds < 1)
 			{
 				return;
@@ -149,6 +165,7 @@ namespace CIVPlayer.Source
 				return;
 			} else
 			{
+				log.Debug("Finding newest save file in Game Folder");
 				FileInfo newestSave = dInfo.GetFiles().Where(f => f.Extension == gameConfig.saveExtension)
 					.OrderByDescending(f => f.LastWriteTime).First();
 				try
@@ -156,7 +173,7 @@ namespace CIVPlayer.Source
 					invokeFunction(() => askThenCopySaveFromGameFolder(newestSave, appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath + "/" + getNewPlayerName() + gameConfig.fileNameEnding + gameConfig.saveExtension));
 				} catch (Exception exeption)
 				{
-					errFunc(exeption.Message,exeption);
+					errFunc(exeption.Message, exeption);
 				}
 			}
 
@@ -164,24 +181,29 @@ namespace CIVPlayer.Source
 
 		private void askThenCopySaveFromGameFolder(FileInfo newestSave, string savePath)
 		{
+			log.Info("Asking for copy savefile to dropbox");
 			Form myForm = new Form { TopMost = true };
 			DialogResult dialogResult = MessageBox.Show(myForm, "Másolhatom ezt a mentést?\n" + newestSave.Name, "Új mentés a mappában", MessageBoxButtons.YesNo);
 			if (dialogResult == DialogResult.Yes)
 			{
-				//dropBoxFolderWatcher.EnableRaisingEvents = false;
-				activeDropBoxSaveFile.Delete();
-				newestSave.CopyTo(appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath + "/" + getNewPlayerName() + gameConfig.fileNameEnding + gameConfig.saveExtension, true);
+				dropBoxFolderWatcher.EnableRaisingEvents = false;
 				//Copy to Temp for logging
 				DateTime n = DateTime.Now;
 				string customTimeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmssff");
-				newestSave.CopyTo(appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath + gameConfig.tempSaveExtendedPath + "/" + appConfig.PlayerName +"_" + customTimeStamp + gameConfig.saveExtension, true);
+				log.Info("Saving last save to Temp");
+				string curFileName = Path.GetFileNameWithoutExtension(activeDropBoxSaveFile.Name);
+				activeDropBoxSaveFile.MoveTo(appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath + gameConfig.tempSaveExtendedPath + "/" + curFileName + "jon_" + customTimeStamp + gameConfig.saveExtension);
+				dropBoxFolderWatcher.EnableRaisingEvents = true;
+				log.Info("Saving new save to DropBox from GameFolder:" + newestSave.Name);
+				newestSave.CopyTo(appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath + "/" + getNewPlayerName() + gameConfig.fileNameEnding + gameConfig.saveExtension, true);
+				//activeDropBoxSaveFile.Delete();
 				alreadyCopied = true;
 				lastGameFolderChecked = DateTime.Now;
-				//dropBoxFolderWatcher.EnableRaisingEvents = true;
 				UserPassed();
 				//load();
 			} else if (dialogResult == DialogResult.No)
 			{
+				log.Info("User refused new save copy to DropBox");
 				lastGameFolderChecked = DateTime.Now;
 				return;
 			}
@@ -204,6 +226,7 @@ namespace CIVPlayer.Source
 
 			return true;
 		}
+		//Not used currently
 		public void PlayerNameChanged()
 		{
 			dropBoxFolderWatcher.EnableRaisingEvents = false;
@@ -224,14 +247,124 @@ namespace CIVPlayer.Source
 
 		private String getNewPlayerName()
 		{
+			log.Debug("Calculating new player name");
 			int indexOfNew = gameConfig.players.IndexOf(currentPlayer);
-			if (indexOfNew == -1) throw new Exception("A beállított játékos nem szerepel a config-ban!");
+			if (indexOfNew == -1) errFunc("A beállított játékos nem szerepel a config-ban!", null);
 			if (gameConfig.players.Count - 1 == indexOfNew)
 			{
 				return gameConfig.players[0];
 			} else
 			{
 				return gameConfig.players[indexOfNew + 1];
+			}
+		}
+		private void OnError(object source, ErrorEventArgs e)
+		{
+			if (e.GetException().GetType() == typeof(InternalBufferOverflowException))
+			{
+				log.Error("Error: File System Watcher internal buffer overflow at " + DateTime.Now);
+			} else
+			{
+				log.Error("Error: Watched directory not accessible at " + DateTime.Now);
+			}
+			if (source == dropBoxFolderWatcher)
+			{
+				DropBoxNotAccessibleError(dropBoxFolderWatcher, e);
+			} else if (source == gameFolderWatcher)
+			{
+				GameFolderNotAccessibleError(gameFolderWatcher, e);
+			}
+			else
+			{
+				DropBoxNotAccessibleError(dropBoxFolderWatcher, e);
+				GameFolderNotAccessibleError(gameFolderWatcher, e);
+			}
+		}
+
+		//Handler for FilSystemWatcher errors
+		void DropBoxNotAccessibleError(FileSystemWatcher source, ErrorEventArgs e)
+		{
+			int iMaxAttempts = 120;
+			int iTimeOut = 3000;
+			int i = 0;
+			while ((!Directory.Exists(appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath) || source.EnableRaisingEvents == false) && i < iMaxAttempts)
+			{
+				i += 1;
+				try
+				{
+					source.EnableRaisingEvents = false;
+					if (!Directory.Exists(appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath))
+					{
+						log.Error("Directory Inaccessible " + source.Path + " at " + DateTime.Now.ToString("HH:mm:ss"));
+						System.Threading.Thread.Sleep(iTimeOut);
+					} else
+					{
+						// ReInitialize the Component
+						source.Dispose();
+						source = null;
+						source = new System.IO.FileSystemWatcher();
+						((System.ComponentModel.ISupportInitialize)(source)).BeginInit();
+						source.EnableRaisingEvents = true;
+						source.Filter = "*" + gameConfig.fileNameEnding + gameConfig.saveExtension;
+						source.Path = appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath;
+						source.InternalBufferSize = 1048576;
+						//source.NotifyFilter = System.IO.NotifyFilters.FileName;
+						source.Changed += DropBoxFolderChanged;
+						source.Created += DropBoxFolderChanged;
+						source.Renamed += DropBoxFolderChanged;
+						source.Error += OnError;
+						((System.ComponentModel.ISupportInitialize)(source)).EndInit();
+						log.Info("Trying to Restart RaisingEvents Watcher at " + DateTime.Now.ToString("HH:mm:ss"));
+					}
+				} catch (Exception error)
+				{
+					log.Error("Error trying Restart Service " + error.StackTrace + " at " + DateTime.Now.ToString("HH:mm:ss"),error);
+					source.EnableRaisingEvents = false;
+					System.Threading.Thread.Sleep(iTimeOut);
+				}
+			}
+		}
+
+		void GameFolderNotAccessibleError(FileSystemWatcher source, ErrorEventArgs e)
+		{
+			int iMaxAttempts = 120;
+			int iTimeOut = 3000;
+			int i = 0;
+			while ((!Directory.Exists(appConfig.CIV5Folder) || source.EnableRaisingEvents == false) && i < iMaxAttempts)
+			{
+				i += 1;
+				try
+				{
+					source.EnableRaisingEvents = false;
+					if (!Directory.Exists(appConfig.CIV5Folder))
+					{
+						log.Error("Directory Inaccessible " + source.Path + " at " + DateTime.Now.ToString("HH:mm:ss"));
+						System.Threading.Thread.Sleep(iTimeOut);
+					} else
+					{
+						// ReInitialize the Component
+						source.Dispose();
+						source = null;
+						source = new System.IO.FileSystemWatcher();
+						((System.ComponentModel.ISupportInitialize)(source)).BeginInit();
+						source.EnableRaisingEvents = true;
+						source.Filter = "*"+ gameConfig.saveExtension;
+						source.Path = appConfig.CIV5Folder;
+						source.InternalBufferSize = 1048576;
+						//source.NotifyFilter = System.IO.NotifyFilters.FileName;
+						source.Changed += GameFolderChanged;
+						source.Created += GameFolderChanged;
+						source.Renamed += GameFolderChanged;
+						source.Error += OnError;
+						((System.ComponentModel.ISupportInitialize)(source)).EndInit();
+						log.Info("Trying to Restart RaisingEvents Watcher at " + DateTime.Now.ToString("HH:mm:ss"));
+					}
+				} catch (Exception error)
+				{
+					log.Error("Error trying Restart Service " + error.StackTrace + " at " + DateTime.Now.ToString("HH:mm:ss"), error);
+					source.EnableRaisingEvents = false;
+					System.Threading.Thread.Sleep(iTimeOut);
+				}
 			}
 		}
 	}

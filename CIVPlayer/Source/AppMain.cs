@@ -19,83 +19,117 @@ namespace CIVPlayer.Source
 		private GameConfig gameConfig { get; }
 		private StateAPI stateApi;
 		private SoundPlayer soundPlayer;
-
+		private string dropBoxFolder;
 		public string DropBoxFolder
 		{
 			get
 			{
-				return appConfig.DropBoxFolder;
+				return dropBoxFolder;
 			}
-
 			set
 			{
-				if (appConfig.EverythingSetup)
-				{
-
-					appConfig.DropBoxFolder = value;
-					ReadGameConfig();
-					PropertyChanged.Invoke(this, new PropertyChangedEventArgs("DropBoxFolder"));
-					SaveAppConfig();
-				}
-				else
-				{
-					appConfig.DropBoxFolder = value;
-					PropertyChanged.Invoke(this, new PropertyChangedEventArgs("DropBoxFolder"));
-					checkAllSettingsGiven();
-				}
+				dropBoxFolder = value;
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DropBoxFolder"));
 			}
 		}
+		//{
+		//	get
+		//	{
+		//		return appConfig.DropBoxFolder;
+		//	}
+
+		//	set
+		//	{
+		//		if (appConfig.EverythingSetup)
+		//		{
+
+		//			appConfig.DropBoxFolder = value;
+		//			ReadGameConfig();
+		//			PropertyChanged.Invoke(this, new PropertyChangedEventArgs("DropBoxFolder"));
+		//			SaveAppConfig();
+		//		} else
+		//		{
+		//			appConfig.DropBoxFolder = value;
+		//			PropertyChanged.Invoke(this, new PropertyChangedEventArgs("DropBoxFolder"));
+		//			checkAllSettingsGiven();
+		//		}
+		//	}
+		//}
+		private string civ5Folder;
 		public string CIV5Folder
 		{
 			get
 			{
-				return appConfig.CIV5Folder;
+				return civ5Folder;
 			}
 
 			set
 			{
-				if (appConfig.EverythingSetup)
-				{
-					appConfig.CIV5Folder = value;
-					ReadGameConfig();
-					PropertyChanged.Invoke(this, new PropertyChangedEventArgs("CIV5Folder"));
-					SaveAppConfig();
-				}
-				else
-				{
-					appConfig.CIV5Folder = value;
-					PropertyChanged.Invoke(this, new PropertyChangedEventArgs("CIV5Folder"));
-					checkAllSettingsGiven();
-				}
+				civ5Folder = value;
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("CIV5Folder"));
 			}
 		}
+		//{
+		//	get
+		//	{
+		//		return appConfig.CIV5Folder;
+		//	}
+
+		//	set
+		//	{
+		//		if (appConfig.EverythingSetup)
+		//		{
+		//			appConfig.CIV5Folder = value;
+		//			ReadGameConfig();
+		//			PropertyChanged.Invoke(this, new PropertyChangedEventArgs("CIV5Folder"));
+		//			SaveAppConfig();
+		//		} else
+		//		{
+		//			appConfig.CIV5Folder = value;
+		//			PropertyChanged.Invoke(this, new PropertyChangedEventArgs("CIV5Folder"));
+		//			checkAllSettingsGiven();
+		//		}
+		//	}
+		//}
+		private string playerName;
 		public string PlayerName
 		{
 			get
 			{
-				return appConfig.PlayerName;
+				return playerName;
 			}
 
 			set
 			{
-				if (appConfig.EverythingSetup)
-				{
-					appConfig.PlayerName = value;
-					PropertyChanged.Invoke(this, new PropertyChangedEventArgs("PlayerName"));
-					if (appConfig.DropBoxFolder != "" && appConfig.CIV5Folder != "")
-					{
-						SaveAppConfig();
-						stateApi.PlayerNameChanged();
-					}
-				}
-				else
-				{
-					appConfig.PlayerName = value;
-					PropertyChanged.Invoke(this, new PropertyChangedEventArgs("PlayerName"));
-					checkAllSettingsGiven();
-				}
+				playerName = value;
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("PlayerName"));
 			}
 		}
+		//{
+		//	get
+		//	{
+		//		return appConfig.PlayerName;
+		//	}
+
+		//	set
+		//	{
+		//		if (appConfig.EverythingSetup)
+		//		{
+		//			appConfig.PlayerName = value;
+		//			PropertyChanged.Invoke(this, new PropertyChangedEventArgs("PlayerName"));
+		//			if (appConfig.DropBoxFolder != "" && appConfig.CIV5Folder != "")
+		//			{
+		//				SaveAppConfig();
+		//				stateApi.PlayerNameChanged();
+		//			}
+		//		} else
+		//		{
+		//			appConfig.PlayerName = value;
+		//			PropertyChanged.Invoke(this, new PropertyChangedEventArgs("PlayerName"));
+		//			checkAllSettingsGiven();
+		//		}
+		//	}
+		//}
 		public string CurrentPlayer
 		{
 			get
@@ -110,30 +144,27 @@ namespace CIVPlayer.Source
 				return gameConfig.gameConfigRows;
 			}
 		}
-		public bool ConfigExists
-		{
-			get
-			{
-				return appConfig.Valid;
-			}
-
-			set
-			{
-				appConfig.Valid = value;
-				if (value)
-					stateApi.Initialize();
-			}
-		}
 
 		public FileInfo appConfigPath = new FileInfo(Environment.CurrentDirectory + "/Resources/appconfig.bin");
 		private MainWindow appWindow;
 
 		public event PropertyChangedEventHandler PropertyChanged;
+		private static readonly log4net.ILog log =
+			log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		public AppMain(MainWindow appWindow)
 		{
 			this.appWindow = appWindow;
-			soundPlayer = new SoundPlayer(Environment.CurrentDirectory + "/Resources/notification.wav");
+			log.Info("Application started");
+			FileInfo soundFile = new FileInfo(Environment.CurrentDirectory + "/Resources/notification.wav");
+			if (soundFile.Exists)
+			{
+				soundPlayer = new SoundPlayer(Environment.CurrentDirectory + "/Resources/notification.wav");
+			}
+			else
+			{
+				soundPlayer = null;
+			}
 			gameConfig = new GameConfig();
 			appConfig = new AppConfiguaraion();
 			stateApi = new StateAPI(appConfig, gameConfig, this.VarnUser, this.appWindow.Dispatcher.Invoke);
@@ -141,22 +172,37 @@ namespace CIVPlayer.Source
 			stateApi.UsersTurn += this.UsersTurnHandler;
 			stateApi.UserPassed += this.UserPassedHandler;
 			ReadAppConfig();
+			CIV5Folder = appConfig.CIV5Folder;
+			DropBoxFolder = appConfig.DropBoxFolder;
+			PlayerName = appConfig.PlayerName;
 		}
 
-		private void checkAllSettingsGiven()
+		public void checkAllSettingsGiven()
 		{
 			if (DropBoxFolder != "" && CIV5Folder != "" && PlayerName != "")
 			{
+				log.Info("Initializing setup");
+				appConfig.DropBoxFolder = this.DropBoxFolder;
+				appConfig.CIV5Folder = this.CIV5Folder;
+				appConfig.PlayerName = this.PlayerName;
 				appConfig.EverythingSetup = true;
 				ReadGameConfig();
 				SaveAppConfig();
+				log.Info("New setup finished");
+			} 
+			else
+			{
+				log.Info("Settings not filled correctly.");
+				VarnUser("Minden mezőt tölts ki!", null);
 			}
 		}
 
 		protected void ReadAppConfig()
 		{
+			log.Info("Reading Appconfig file");
 			if (!appConfigPath.Exists)
 			{
+				log.Info("Appconfig file does not exist! Creating new one");
 				SaveAppConfig();
 			} else
 			{
@@ -170,11 +216,15 @@ namespace CIVPlayer.Source
 					appConfig = (AppConfiguaraion)formatter.Deserialize(stream);
 					stateApi.appConfig = this.appConfig;
 					stream.Close();
+					log.Info("Appconfig read successfully");
+					CIV5Folder = appConfig.CIV5Folder;
+					DropBoxFolder = appConfig.DropBoxFolder;
+					PlayerName = appConfig.PlayerName;
 
 				} catch (Exception)
 				{
 					SaveAppConfig();
-					Console.WriteLine("Cannot deserialize AppConfig!");
+					log.Error("Cannot deserialize AppConfig! - Created new instead");
 				}
 			}
 			ReadGameConfig();
@@ -185,9 +235,11 @@ namespace CIVPlayer.Source
 			try {
 				if (appConfig.DropBoxFolder != "")
 				{
+					log.Info("Reading config file from dropbox");
 					string[] lines = File.ReadAllLines(appConfig.DropBoxFolder + "/CIV/civ5.config");
 					gameConfig.RawData = lines.Select(l => l.Split('=')).ToDictionary(a => a[0], a => a[1]);
-					ConfigExists = true;
+					log.Info("Config file found and valid");
+					stateApi.Initialize();
 				}
 			} catch (Exception e)
 			{
@@ -203,17 +255,24 @@ namespace CIVPlayer.Source
 									 FileAccess.Write, FileShare.None);
 			formatter.Serialize(stream, appConfig);
 			stream.Close();
+			log.Info("Appconfig saved");
 		}
 		private void currentPlayerChangedHandler()
 		{
+			log.Info("Handling current player changed");
 			if (PropertyChanged != null)
 				PropertyChanged.Invoke(this, new PropertyChangedEventArgs("CurrentPlayer"));
 			appWindow.tray_icon.Text = CurrentPlayer + " köre van";
 		}
 		private void UsersTurnHandler()
 		{
+			log.Info("Handling user's turn");
 			SystemSounds.Asterisk.Play();
-			soundPlayer.Play();
+			FileInfo soundFile = new FileInfo(Environment.CurrentDirectory + "/Resources/notification.wav");
+			if (soundPlayer != null && soundFile.Exists)
+			{
+				soundPlayer.Play();
+			}
 			appWindow.Dispatcher.Invoke(() =>
 			{
 				appWindow.StatusGrid.Background = System.Windows.Media.Brushes.ForestGreen;
@@ -222,11 +281,14 @@ namespace CIVPlayer.Source
 		}
 		private void UserPassedHandler()
 		{
+			log.Info("Handling user passed");
 			appWindow.Dispatcher.Invoke(() =>
 			appWindow.StatusGrid.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom("#FFE5E5E5")));
 		}
 		private void VarnUser(string s, Exception e)
 		{
+			if (e != null) log.Error(s, e);
+			else log.Warn(s);
 			System.Windows.Forms.MessageBox.Show(new Form { TopMost = true },s);	
 		}
 	}

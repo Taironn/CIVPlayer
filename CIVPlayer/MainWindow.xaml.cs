@@ -30,6 +30,9 @@ namespace CIVPlayer
 		public NotifyIcon tray_icon;
 		bool closing = false;
 		private AppMain appMain;
+		private static readonly log4net.ILog log =
+			log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -95,6 +98,13 @@ namespace CIVPlayer
 					appMain.CIV5Folder = dialog.SelectedPath;
 				}
 			}
+		}
+
+		private void button3_Click(object sender, RoutedEventArgs e)
+		{
+			appMain.checkAllSettingsGiven();
+			//gameStatus.IsSelected = true;
+			Dispatcher.BeginInvoke((Action)(() => tabControl.SelectedIndex = 0));
 		}
 	}
 }
