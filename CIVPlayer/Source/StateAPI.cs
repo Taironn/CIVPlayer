@@ -8,10 +8,11 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CIVPlayer.Source
-{   
+{
 	class StateAPI
 	{
 		private static int ioSleepTime = 1000;
+		private static int saveWaitSeconds = 3;
 		private string currentPlayer;
 		private FileInfo activeDropBoxSaveFile;
 		public AppConfiguaraion appConfig { get; set; }
@@ -28,6 +29,7 @@ namespace CIVPlayer.Source
 		private InvokeFunction invokeFunction;
 		private bool alreadyCopied;
 		private DateTime lastGameFolderChecked;
+		public DateTime lastSetupTime;
 
 		private FileSystemWatcher dropBoxFolderWatcher;
 		private FileSystemWatcher gameFolderWatcher;
@@ -76,11 +78,13 @@ namespace CIVPlayer.Source
 			errFunc = ef;
 			invokeFunction = invokefunc;
 			dropBoxFolderWatcher = null;
-			currentPlayer = "";
+			//currentPlayer = "";
 		}
 		public void Initialize()
 		{
 			log.Info("Initializing StateAPI");
+			currentPlayer = "";
+			lastSetupTime = DateTime.Now;
 			alreadyCopied = false;
 			lastGameFolderChecked = DateTime.Now.AddSeconds(-10);
 			if (!checkConfigFoldersExistence())
@@ -154,45 +158,53 @@ namespace CIVPlayer.Source
 		public void GameFolderChanged(object sender, FileSystemEventArgs e)
 		{
 			log.Debug("GameFolderChangedEvent arrived");
-			if (!(CurrentPlayer == appConfig.PlayerName) || alreadyCopied || (DateTime.Now - lastGameFolderChecked).TotalSeconds < 1)
+			lock (currentPlayer)
 			{
-				return;
-			}
-			DirectoryInfo dInfo = dInfo = new DirectoryInfo(appConfig.CIV5Folder);
-			if (!dInfo.Exists)
-			{
-				errFunc(appConfig.CIV5Folder + " elérés nem létezik! (megadott Játék mentés elérés)", null);
-				return;
-			} else
-			{
-				log.Debug("Finding newest save file in Game Folder");
-				FileInfo newestSave = dInfo.GetFiles().Where(f => f.Extension == gameConfig.saveExtension)
-					.OrderByDescending(f => f.LastWriteTime).First();
-				try
+				if (!(CurrentPlayer == appConfig.PlayerName) || alreadyCopied || (DateTime.Now - lastGameFolderChecked).TotalSeconds < 1 || (DateTime.Now - lastSetupTime).TotalMilliseconds < ioSleepTime + 1000)
 				{
-					invokeFunction(() => askThenCopySaveFromGameFolder(newestSave, appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath + "/" + getNewPlayerName() + gameConfig.fileNameEnding + gameConfig.saveExtension));
-				} catch (Exception exeption)
+					return;
+				}
+				DirectoryInfo dInfo = dInfo = new DirectoryInfo(appConfig.CIV5Folder);
+				if (!dInfo.Exists)
 				{
-					errFunc(exeption.Message, exeption);
+					errFunc(appConfig.CIV5Folder + " elérés nem létezik! (megadott Játék mentés elérés)", null);
+					return;
+				} else
+				{
+					log.Debug("Finding newest save file in Game Folder");
+					FileInfo newestSave = dInfo.GetFiles().Where(f => f.Extension == gameConfig.saveExtension)
+						.OrderByDescending(f => f.LastWriteTime).First();
+					try
+					{
+						invokeFunction(() => askThenCopySaveFromGameFolder(newestSave, appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath + "/" + getNewPlayerName() + gameConfig.fileNameEnding + gameConfig.saveExtension));
+					} catch (Exception exeption)
+					{
+						errFunc(exeption.Message, exeption);
+					}
 				}
 			}
-
 		}
 
 		private void askThenCopySaveFromGameFolder(FileInfo newestSave, string savePath)
 		{
 			log.Info("Asking for copy savefile to dropbox");
 			Form myForm = new Form { TopMost = true };
+			DateTime curTime = DateTime.Now;
 			DialogResult dialogResult = MessageBox.Show(myForm, "Másolhatom ezt a mentést?\n" + newestSave.Name, "Új mentés a mappában", MessageBoxButtons.YesNo);
 			if (dialogResult == DialogResult.Yes)
 			{
 				dropBoxFolderWatcher.EnableRaisingEvents = false;
+				int seconds = (DateTime.Now - curTime).Seconds;
+				if (seconds < saveWaitSeconds)
+				{
+					Thread.Sleep((saveWaitSeconds - seconds) * 1000);
+				}
 				//Copy to Temp for logging
 				DateTime n = DateTime.Now;
-				string customTimeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmssff");
+				string customTimeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
 				log.Info("Saving last save to Temp");
 				string curFileName = Path.GetFileNameWithoutExtension(activeDropBoxSaveFile.Name);
-				activeDropBoxSaveFile.MoveTo(appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath + gameConfig.tempSaveExtendedPath + "/" + curFileName + "jon_" + customTimeStamp + gameConfig.saveExtension);
+				activeDropBoxSaveFile.MoveTo(appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath + gameConfig.tempSaveExtendedPath + "/" + curFileName + "_" + customTimeStamp + gameConfig.saveExtension);
 				dropBoxFolderWatcher.EnableRaisingEvents = true;
 				log.Info("Saving new save to DropBox from GameFolder:" + newestSave.Name);
 				newestSave.CopyTo(appConfig.DropBoxFolder + gameConfig.dropBoxExtendedPath + "/" + getNewPlayerName() + gameConfig.fileNameEnding + gameConfig.saveExtension, true);
@@ -273,8 +285,7 @@ namespace CIVPlayer.Source
 			} else if (source == gameFolderWatcher)
 			{
 				GameFolderNotAccessibleError(gameFolderWatcher, e);
-			}
-			else
+			} else
 			{
 				DropBoxNotAccessibleError(dropBoxFolderWatcher, e);
 				GameFolderNotAccessibleError(gameFolderWatcher, e);
@@ -318,7 +329,7 @@ namespace CIVPlayer.Source
 					}
 				} catch (Exception error)
 				{
-					log.Error("Error trying Restart Service " + error.StackTrace + " at " + DateTime.Now.ToString("HH:mm:ss"),error);
+					log.Error("Error trying Restart Service " + error.StackTrace + " at " + DateTime.Now.ToString("HH:mm:ss"), error);
 					source.EnableRaisingEvents = false;
 					System.Threading.Thread.Sleep(iTimeOut);
 				}
@@ -348,7 +359,7 @@ namespace CIVPlayer.Source
 						source = new System.IO.FileSystemWatcher();
 						((System.ComponentModel.ISupportInitialize)(source)).BeginInit();
 						source.EnableRaisingEvents = true;
-						source.Filter = "*"+ gameConfig.saveExtension;
+						source.Filter = "*" + gameConfig.saveExtension;
 						source.Path = appConfig.CIV5Folder;
 						source.InternalBufferSize = 1048576;
 						//source.NotifyFilter = System.IO.NotifyFilters.FileName;

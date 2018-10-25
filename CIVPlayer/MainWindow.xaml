@@ -37,7 +37,8 @@
                     <TextBox x:Name="textBox2" Grid.Row="2" Grid.Column="2" Text="{Binding CIV5Folder, Mode = OneWay}" VerticalAlignment="Top" Height="25" Margin="20,10,20,2"/>
                     <Button x:Name="button2" Grid.Row="2" Grid.Column="3" Content="Tallózás" VerticalAlignment="Top" Height="30" HorizontalAlignment="Left" Width="70" Click="button2_Click"  Margin="0,7.5,0,0"/>
                     <Label x:Name="label3" Grid.Row="3" Grid.Column="1" Content="Játékos neve:" VerticalAlignment="Top" Height="30" Margin="10"/>
-                    <TextBox x:Name="textBox3" Grid.Row="3" Grid.Column="2" Text="{Binding PlayerName, Mode = TwoWay}" VerticalAlignment="Top" Height="25" Margin="20,10,20,2"/>
+                    <ComboBox x:Name="comboBox" Grid.Row="3" Grid.Column="2" ItemsSource="{Binding Players, Mode=OneWay}" SelectedItem="{Binding PlayerName, Mode=OneWay}" VerticalAlignment="Top" Height="25" Margin="20,10,20,2" />
+                    <Button x:Name="buttonLoad" Grid.Row="3" Grid.Column="3" Content="Betöltés" VerticalAlignment="Top" Height="30" HorizontalAlignment="Left" Width="70" Click="buttonLoad_Click"  Margin="0,7.5,0,0"/>
                     <Button x:Name="button3" Grid.Row="4" Grid.Column="2" Background="LightGreen" Content="Mentés" VerticalAlignment="Center"  HorizontalAlignment="Center" Margin="20" Width="80" Height="30" Click="button3_Click"/>
                 </Grid>
             </TabItem>
@@ -51,6 +52,25 @@
                             </GridView>
                         </ListView.View>
                     </ListView>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Extrák" >
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="4*" />
+                        <ColumnDefinition Width="12*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="4*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="2*" />
+                        <RowDefinition Height="3*" />
+                        <RowDefinition Height="3*" />
+                        <RowDefinition Height="3*" />
+                        <RowDefinition Height="5*" />
+                    </Grid.RowDefinitions>
+
                 </Grid>
             </TabItem>
         </TabControl>

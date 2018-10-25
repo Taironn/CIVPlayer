@@ -102,9 +102,28 @@ namespace CIVPlayer
 
 		private void button3_Click(object sender, RoutedEventArgs e)
 		{
+			if (comboBox.SelectedItem == null)
+			{
+				System.Windows.Forms.MessageBox.Show("Válassz melyik játékos vagy!");
+				return;
+			}
+			appMain.PlayerName = comboBox.SelectedItem.ToString();
 			appMain.checkAllSettingsGiven();
-			//gameStatus.IsSelected = true;
 			Dispatcher.BeginInvoke((Action)(() => tabControl.SelectedIndex = 0));
+		}
+
+		private void buttonLoad_Click(object sender, RoutedEventArgs e)
+		{
+			if (appMain.LoadGameConfigData())
+			{
+				if (appMain.PlayerName == "" || appMain.PlayerName == null)
+				{
+					comboBox.SelectedIndex = 0;
+				} else
+				{
+					comboBox.SelectedIndex = appMain.Players.FindIndex(x => x == appMain.PlayerName);
+				}
+			}
 		}
 	}
 }
