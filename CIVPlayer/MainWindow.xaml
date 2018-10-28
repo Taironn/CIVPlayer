@@ -30,13 +30,13 @@
                         <RowDefinition Height="3*" />
                         <RowDefinition Height="5*" />
                     </Grid.RowDefinitions>
-                    <Label x:Name="label1" Grid.Row="1" Grid.Column="1" Content="Dropbox root" VerticalAlignment="Top" Height="30" Margin="0,10,0,0"/>
-                    <TextBox x:Name="textBox1" Grid.Row="1" Grid.Column="2" Text="{Binding DropBoxFolder, Mode = OneWay}" VerticalAlignment="Top" Height="25" Margin="20,10,20,2"/>
+                    <Label x:Name="label1" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" Content="Dropbox root" VerticalAlignment="Top" Height="30" Margin="0,10,0,0"/>
+                    <TextBox x:Name="textBox1" Grid.Row="1" Grid.Column="2" IsReadOnly="True" Text="{Binding DropBoxFolder, Mode = OneWay}" VerticalAlignment="Top" Height="25" Margin="20,10,20,2"/>
                     <Button x:Name="button1" Grid.Row="1" Grid.Column="3" Content="Tallózás" VerticalAlignment="Top" Height="30" HorizontalAlignment="Left" Width="70" Click="button1_Click" Margin="0,7.5,0,0"/>
                     <TextBlock x:Name="label2" Grid.Row="2" Grid.Column="1" TextWrapping="WrapWithOverflow" TextAlignment="Center" Text="CIV5 mentések mappája (hotseat)" VerticalAlignment="Top" Height="45" Margin="0,10,0,0" Grid.RowSpan="2"/>
-                    <TextBox x:Name="textBox2" Grid.Row="2" Grid.Column="2" Text="{Binding CIV5Folder, Mode = OneWay}" VerticalAlignment="Top" Height="25" Margin="20,10,20,2"/>
+                    <TextBox x:Name="textBox2" Grid.Row="2" Grid.Column="2" IsReadOnly="True" Text="{Binding CIV5Folder, Mode = OneWay}" VerticalAlignment="Top" Height="25" Margin="20,10,20,2"/>
                     <Button x:Name="button2" Grid.Row="2" Grid.Column="3" Content="Tallózás" VerticalAlignment="Top" Height="30" HorizontalAlignment="Left" Width="70" Click="button2_Click"  Margin="0,7.5,0,0"/>
-                    <Label x:Name="label3" Grid.Row="3" Grid.Column="1" Content="Játékos neve:" VerticalAlignment="Top" Height="30" Margin="10"/>
+                    <Label x:Name="label3" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Center"  Content="Játékos neve:" VerticalAlignment="Top" Height="30" Margin="0,10,0,0"/>
                     <ComboBox x:Name="comboBox" Grid.Row="3" Grid.Column="2" ItemsSource="{Binding Players, Mode=OneWay}" SelectedItem="{Binding PlayerName, Mode=OneWay}" VerticalAlignment="Top" Height="25" Margin="20,10,20,2" />
                     <Button x:Name="buttonLoad" Grid.Row="3" Grid.Column="3" Content="Betöltés" VerticalAlignment="Top" Height="30" HorizontalAlignment="Left" Width="70" Click="buttonLoad_Click"  Margin="0,7.5,0,0"/>
                     <Button x:Name="button3" Grid.Row="4" Grid.Column="2" Background="LightGreen" Content="Mentés" VerticalAlignment="Center"  HorizontalAlignment="Center" Margin="20" Width="80" Height="30" Click="button3_Click"/>
@@ -60,7 +60,6 @@
                         <ColumnDefinition Width="1*" />
                         <ColumnDefinition Width="4*" />
                         <ColumnDefinition Width="12*" />
-                        <ColumnDefinition Width="1*" />
                         <ColumnDefinition Width="4*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
@@ -70,7 +69,15 @@
                         <RowDefinition Height="3*" />
                         <RowDefinition Height="5*" />
                     </Grid.RowDefinitions>
-
+                    <Label x:Name="civExeLabel" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" Content="CIV exe:" VerticalAlignment="Top" Height="30" Margin="0,10,0,0"/>
+                    <TextBox x:Name="civExePathTextBox" Grid.Row="1" Grid.Column="2" IsReadOnly="True" Text="{Binding CivExePath, Mode = OneWay}" VerticalAlignment="Top" Height="25" Margin="20,10,20,2"/>
+                    <Button x:Name="civExePathButton" Grid.Row="1" Grid.Column="3" Content="Tallózás" VerticalAlignment="Top" Height="30" HorizontalAlignment="Left" Width="70" Margin="0,7.5,0,0" Click="civExePathButton_Click"/>
+                    <TextBlock x:Name="startWithLabel" Grid.Row="2" Grid.Column="1" TextWrapping="WrapWithOverflow" TextAlignment="Center" Text="Automatikus indítás:" VerticalAlignment="Top" Height="30" Margin="0,10,0,0"/>
+                    <CheckBox x:Name="startWithCheckBox" IsChecked="{Binding StartOnUsesTurn, Mode = OneWay }" Grid.Row="2" Grid.Column="2" HorizontalAlignment="Left" Margin="20,20,0,2" Click="startWithCheckBox_Checked" />
+                    <TextBlock x:Name="startWithoutPropmtLabel" Grid.Row="3" Grid.Column="1" TextWrapping="WrapWithOverflow" TextAlignment="Center" Text="Indítás kérdés nélkül:" VerticalAlignment="Top" Height="30" Margin="0,10,0,0"/>
+                    <CheckBox x:Name="startWithoutPropmtCheckBox" IsChecked="{Binding StartWithoutPrompt, Mode = OneWay}" Grid.Row="3" Grid.Column="2" HorizontalAlignment="Left" Margin="20,20,0,2" Click="startWithoutPropmtCheckBox_Checked" RenderTransformOrigin="0.5,0.506" />
+                    <TextBlock x:Name="MusicLabel" Grid.Row="4" Grid.Column="1" TextWrapping="WrapWithOverflow" TextAlignment="Center" Text="Über szexi körjelző hang:" VerticalAlignment="Top" Height="35" Margin="0,10,0,0"/>
+                    <CheckBox x:Name="MusicCheckBox" IsChecked="{Binding UsersTurnMusic, Mode = OneWay}" Grid.Row="4" Grid.Column="2" HorizontalAlignment="Left" Margin="20,20,0,2" Click="MusicCheckBox_Checked" />
                 </Grid>
             </TabItem>
         </TabControl>

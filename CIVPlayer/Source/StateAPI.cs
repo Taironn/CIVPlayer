@@ -30,7 +30,6 @@ namespace CIVPlayer.Source
 		private bool alreadyCopied;
 		private DateTime lastGameFolderChecked;
 		public DateTime lastSetupTime;
-
 		private FileSystemWatcher dropBoxFolderWatcher;
 		private FileSystemWatcher gameFolderWatcher;
 

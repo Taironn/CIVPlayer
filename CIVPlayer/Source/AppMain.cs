@@ -32,6 +32,21 @@ namespace CIVPlayer.Source
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DropBoxFolder"));
 			}
 		}
+		private string civExePath;
+		public string CivExePath
+		{
+			get
+			{
+				return civExePath;
+			}
+
+			set
+			{
+				civExePath = value;
+				appConfig.CivExePath = value;
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("CivExePath"));
+			}
+		}
 		private string civ5Folder;
 		public string CIV5Folder
 		{
@@ -74,6 +89,52 @@ namespace CIVPlayer.Source
 				return gameConfig.players;
 			}
 		}
+		private bool startOnUsesTurn;
+		public bool StartOnUsesTurn
+		{
+			get
+			{
+				return startOnUsesTurn;
+			}
+
+			set
+			{
+				startOnUsesTurn = value;
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("StartOnUsesTurn"));
+			}
+		}
+		private bool startWithoutPrompt;
+		public bool StartWithoutPrompt
+		{
+			get
+			{
+				return startWithoutPrompt;
+			}
+
+			set
+			{
+				startWithoutPrompt = value;
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("StartWithoutPrompt"));
+				if (value)
+				{
+					StartOnUsesTurn = true;
+				}
+			}
+		}
+		private bool usersTurnMusic;
+		public bool UsersTurnMusic
+		{
+			get
+			{
+				return usersTurnMusic;
+			}
+
+			set
+			{
+				usersTurnMusic = value;
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("UsersTurnMusic"));
+			}
+		}
 		public List<GameConfigListRow> GameConfigRows
 		{
 			get
@@ -81,7 +142,6 @@ namespace CIVPlayer.Source
 				return gameConfig.gameConfigRows;
 			}
 		}
-
 		public FileInfo appConfigPath = new FileInfo(Environment.CurrentDirectory + "/Resources/appconfig.bin");
 		private MainWindow appWindow;
 
@@ -108,9 +168,6 @@ namespace CIVPlayer.Source
 			stateApi.UsersTurn += this.UsersTurnHandler;
 			stateApi.UserPassed += this.UserPassedHandler;
 			ReadAppConfig();
-			CIV5Folder = appConfig.CIV5Folder;
-			DropBoxFolder = appConfig.DropBoxFolder;
-			PlayerName = appConfig.PlayerName;
 		}
 
 		public void checkAllSettingsGiven()
@@ -133,6 +190,15 @@ namespace CIVPlayer.Source
 			}
 		}
 
+		public void SaveExtras()
+		{
+			appConfig.StartOnUsesTurn = this.startOnUsesTurn;
+			appConfig.StartWithoutPrompt = this.startWithoutPrompt;
+			appConfig.CivExePath = this.civExePath;
+			appConfig.UsersTurnMusic = this.usersTurnMusic;
+			SaveAppConfig();
+		}
+
 		protected void ReadAppConfig()
 		{
 			log.Info("Reading Appconfig file");
@@ -153,9 +219,6 @@ namespace CIVPlayer.Source
 					stateApi.appConfig = this.appConfig;
 					stream.Close();
 					log.Info("Appconfig read successfully");
-					CIV5Folder = appConfig.CIV5Folder;
-					DropBoxFolder = appConfig.DropBoxFolder;
-					PlayerName = appConfig.PlayerName;
 					//appWindow.Dispatcher.Invoke(() => appWindow.refreshPlayersComboBox());
 
 				} catch (Exception)
@@ -164,6 +227,13 @@ namespace CIVPlayer.Source
 					log.Error("Cannot deserialize AppConfig! - Created new instead");
 				}
 			}
+			CIV5Folder = appConfig.CIV5Folder;
+			DropBoxFolder = appConfig.DropBoxFolder;
+			PlayerName = appConfig.PlayerName;
+			CivExePath = appConfig.CivExePath;
+			StartWithoutPrompt = appConfig.StartWithoutPrompt;
+			StartOnUsesTurn = appConfig.StartOnUsesTurn;
+			UsersTurnMusic = appConfig.UsersTurnMusic;
 			ReadGameConfig();
 		}
 
@@ -193,12 +263,19 @@ namespace CIVPlayer.Source
 				return false;
 			} else
 			{
-				log.Info("Loading config file for player selection");
-				string[] lines = File.ReadAllLines(this.DropBoxFolder + "/CIV/civ5.config");
-				gameConfig.RawData = lines.Select(l => l.Split('=')).ToDictionary(a => a[0], a => a[1]);
-				log.Info("Config file found and valid");
-				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Players"));
-				return true;
+				try
+				{
+					log.Info("Loading config file for player selection");
+					string[] lines = File.ReadAllLines(this.DropBoxFolder + "/CIV/civ5.config");
+					gameConfig.RawData = lines.Select(l => l.Split('=')).ToDictionary(a => a[0], a => a[1]);
+					log.Info("Config file found and valid");
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Players"));
+					return true;
+				} catch (Exception e)
+				{
+					VarnUser("Nincs konfig fájl a megadott dropbox mappában, vagy nem helyes!", e);
+					return false;
+				}
 			}
 		}
 
@@ -224,16 +301,32 @@ namespace CIVPlayer.Source
 			log.Info("Handling user's turn");
 			SystemSounds.Asterisk.Play();
 			FileInfo soundFile = new FileInfo(Environment.CurrentDirectory + "/Resources/notification.wav");
-			if (soundPlayer != null && soundFile.Exists)
+			if (soundPlayer != null && soundFile.Exists && appConfig.UsersTurnMusic)
 			{
 				soundPlayer.Play();
 			}
+			if (appConfig.StartWithoutPrompt)
+			{
+				log.Info("Opening game exe");
+				System.Diagnostics.Process.Start(CivExePath);
+			}
 			appWindow.Dispatcher.Invoke(() =>
 			{
+				appWindow.Show();
+				appWindow.GetToForeground();
 				appWindow.StatusGrid.Background = System.Windows.Media.Brushes.ForestGreen;
 				System.Windows.Forms.MessageBox.Show(new Form { TopMost = true }, "Te lépsz!");
 				stateApi.lastSetupTime = DateTime.Now;
 			});
+			if (appConfig.StartOnUsesTurn && !appConfig.StartWithoutPrompt)
+			{
+				DialogResult dialogResult = MessageBox.Show("Indíthatom a játékot?","Játék indítása", MessageBoxButtons.YesNo);
+				if (dialogResult == DialogResult.Yes)
+				{
+					log.Info("Opening game exe");
+					System.Diagnostics.Process.Start(CivExePath);
+				}
+			}
 		}
 		private void ResetStatus()
 		{

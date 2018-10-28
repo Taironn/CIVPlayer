@@ -19,6 +19,7 @@ using CIVPlayer.Source;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Windows.Threading;
 
 namespace CIVPlayer
 {
@@ -36,6 +37,7 @@ namespace CIVPlayer
 		public MainWindow()
 		{
 			InitializeComponent();
+			this.Dispatcher.UnhandledException += My_DispatcherUnhandledException;
 			tray_icon = new NotifyIcon();
 			var c = System.AppDomain.CurrentDomain.BaseDirectory;
 			tray_icon.Icon = new Icon(Environment.CurrentDirectory + "/Resources/Statue_Of_Liberty.ico");
@@ -58,6 +60,11 @@ namespace CIVPlayer
 
 
 		private void Tray_icon_DoubleClick(object sender, EventArgs e)
+		{
+			GetToForeground();
+		}
+
+		public void GetToForeground()
 		{
 			this.ShowInTaskbar = true;
 			this.Show();
@@ -124,6 +131,82 @@ namespace CIVPlayer
 					comboBox.SelectedIndex = appMain.Players.FindIndex(x => x == appMain.PlayerName);
 				}
 			}
+		}
+
+		void My_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+		{
+			log.Fatal("Unhandled exception", e.Exception);
+			System.Windows.Forms.MessageBox.Show("Nem kezelt hiba! (szólj érte :P): " + e.Exception.Message + "; ");
+		}
+
+		private void civExePathButton_Click(object sender, RoutedEventArgs e)
+		{
+			using (var dialog = new OpenFileDialog())
+			{
+				dialog.CheckFileExists = true;
+				dialog.CheckPathExists = true;
+				dialog.Multiselect = false;
+				dialog.Filter = "Exe files |*.exe";
+				log.Info("User is selecting exe path");
+				DialogResult result = dialog.ShowDialog();
+				if (result == System.Windows.Forms.DialogResult.OK)
+				{
+					string filePath = dialog.FileName;
+					FileInfo fInfo = new FileInfo(filePath);
+					if (fInfo.Exists == false)
+					{
+						log.Info("File selected does not exist");
+						System.Windows.Forms.MessageBox.Show("Ez a fájl nem létezik!");
+					} else if (fInfo.Extension != ".exe")
+					{
+						log.Info("File selected is not .exe type");
+						System.Windows.Forms.MessageBox.Show("Ez a fájl nem exe típusú!");
+					} else
+					{
+						appMain.CivExePath = filePath;
+						appMain.SaveExtras();
+					}
+				}
+			}
+		}
+
+		private void startWithCheckBox_Checked(object sender, RoutedEventArgs e)
+		{
+			if (checkForExePath())
+			{
+				appMain.StartOnUsesTurn = startWithCheckBox.IsChecked ?? false;
+				appMain.SaveExtras();
+			} else
+			{
+				startWithCheckBox.IsChecked = false;
+			}
+		}
+
+		private void startWithoutPropmtCheckBox_Checked(object sender, RoutedEventArgs e)
+		{
+			if (checkForExePath())
+			{
+				appMain.StartWithoutPrompt = startWithoutPropmtCheckBox.IsChecked ?? false;
+				appMain.SaveExtras();
+			} else
+			{
+				startWithoutPropmtCheckBox.IsChecked = false;
+			}
+		}
+
+		private void MusicCheckBox_Checked(object sender, RoutedEventArgs e)
+		{
+				appMain.UsersTurnMusic = MusicCheckBox.IsChecked ?? false;
+				appMain.SaveExtras();
+		}
+		private bool checkForExePath()
+		{
+			if (appMain.CivExePath == null || appMain.CivExePath == "")
+			{
+				System.Windows.Forms.MessageBox.Show("Nem adtál meg exe útvonalat!");
+				return false;
+			}
+			return true;
 		}
 	}
 }
