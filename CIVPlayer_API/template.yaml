@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: CIV game statistic api
+Resources:
+  PlayerStepLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: PlayerStep
+      Handler: playerstep.handler
+      Runtime: python3.7
+      CodeUri: src
+      MemorySize: 128
+      Timeout: 30
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        PlayerStepEndpoint:
+          Type: Api
+          Properties:
+            Path: /step
+            Method: post
+  CIVPlayerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: username
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: username
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
