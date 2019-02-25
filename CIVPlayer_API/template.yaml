@@ -11,14 +11,39 @@ Resources:
       CodeUri: src
       MemorySize: 128
       Timeout: 30
+      Environment:
+        Variables:
+          TableName: !Ref CIVPlayerTable
       Policies:
         - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
       Events:
         PlayerStepEndpoint:
           Type: Api
           Properties:
             Path: /step
             Method: post
+  AvarageStepTimeLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: AvarageStepTime
+      Handler: statistic.avarage_steps
+      Runtime: python3.7
+      CodeUri: src
+      MemorySize: 128
+      Timeout: 30
+      Environment:
+        Variables:
+          TableName: !Ref CIVPlayerTable
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      Events:
+        PlayerStepEndpoint:
+          Type: Api
+          Properties:
+            Path: /statistics
+            Method: get
   CIVPlayerTable:
     Type: AWS::DynamoDB::Table
     Properties:
