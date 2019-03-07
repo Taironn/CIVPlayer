@@ -6,18 +6,13 @@ from datetime import datetime, timezone
 
 def handler(event, context):
     try:
-        client = boto3.client('dynamodb')
         body = get_body(event)
-        client.put_item(
-            TableName=os.environ['TableName'],
+        db = boto3.resource('dynamodb')
+        table = db.Table(os.environ['TableName'])
+        table.put_item(
             Item={
-                'username': {
-                    'S': body['username']
-                },
-                'timestamp': {
-                    'S': datetime.now(timezone.utc).isoformat()
-                }
-
+                'username': body['username'],
+                'timestamp': datetime.now(timezone.utc).isoformat()
             }
         )
 

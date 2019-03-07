@@ -5,8 +5,9 @@ from datetime import datetime
 
 
 def avarage_steps(event, context):
-    client = boto3.client('dynamodb')
-    steps = _list_steps(client)
+    db = boto3.resource('dynamodb')
+    steps = _list_steps(db)
+    print(steps)
 
     statistics = _calculate_statistic(steps)
 
@@ -23,7 +24,7 @@ def _calculate_statistic(steps):
     user_statistics = {}
     sorted_steps = sorted(steps, key=lambda k: _get_timestamp(k))
     for step in sorted_steps:
-        username = _get_username(step)
+        username = step['username']
         timestamp = _get_timestamp(step)
         if username not in user_statistics.keys():
             user_statistics[username] = {
@@ -46,17 +47,11 @@ def _calculate_statistic(steps):
     }
 
 
-def _list_steps(client):
-    return client.scan(
-        TableName=os.environ['TableName'],
-        Select='ALL_ATTRIBUTES'
-    )['Items']
-
-
-def _get_username(step):
-    return step['username']['S']
+def _list_steps(db):
+    table = db.Table(os.environ['TableName'])
+    return table.scan(Select='ALL_ATTRIBUTES')['Items']
 
 
 def _get_timestamp(step):
-    datestring = step['timestamp']['S']
+    datestring = step['timestamp']
     return datetime.fromisoformat(datestring)
