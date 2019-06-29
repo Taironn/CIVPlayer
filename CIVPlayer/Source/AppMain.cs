@@ -320,7 +320,8 @@ namespace CIVPlayer.Source
 			});
 			if (appConfig.StartOnUsesTurn && !appConfig.StartWithoutPrompt)
 			{
-				DialogResult dialogResult = MessageBox.Show("Indíthatom a játékot?","Játék indítása", MessageBoxButtons.YesNo);
+				Form myForm = new Form { TopMost = true, TopLevel = true };
+				DialogResult dialogResult = MessageBox.Show(myForm, "Indíthatom a játékot?", "Játék indítása", MessageBoxButtons.YesNo);
 				if (dialogResult == DialogResult.Yes)
 				{
 					log.Info("Opening game exe");

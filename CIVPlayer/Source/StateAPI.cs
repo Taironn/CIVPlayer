@@ -187,7 +187,7 @@ namespace CIVPlayer.Source
 		private void askThenCopySaveFromGameFolder(FileInfo newestSave, string savePath)
 		{
 			log.Info("Asking for copy savefile to dropbox");
-			Form myForm = new Form { TopMost = true };
+			Form myForm = new Form { TopMost = true, TopLevel = true };
 			DateTime curTime = DateTime.Now;
 			DialogResult dialogResult = MessageBox.Show(myForm, "Másolhatom ezt a mentést?\n" + newestSave.Name, "Új mentés a mappában", MessageBoxButtons.YesNo);
 			if (dialogResult == DialogResult.Yes)
@@ -310,7 +310,13 @@ namespace CIVPlayer.Source
 					} else
 					{
 						// ReInitialize the Component
-						source.Dispose();
+						try
+						{
+							source.Dispose();
+						} catch (Exception ex)
+						{
+							log.Warn("Could not dispose FilesystemWatcher - it might not be running", ex);
+						}
 						source = null;
 						source = new System.IO.FileSystemWatcher();
 						((System.ComponentModel.ISupportInitialize)(source)).BeginInit();
