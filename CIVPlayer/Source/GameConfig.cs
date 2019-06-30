@@ -11,11 +11,14 @@ namespace CIVPlayer.Source
 	{
 		private Dictionary<string, string> rawData;
 		public List<string> players;
+        public List<string> emails;
 		public List<GameConfigListRow> gameConfigRows;
 		public string dropBoxExtendedPath = "/CIV";
 		public string tempSaveExtendedPath = "/Temp";
 		public string fileNameEnding = "jon";
 		public string saveExtension = "Civ5Save";
+        public string fromMailAddress;
+        public string fromMailPassword;
 
 		private static readonly log4net.ILog log =
 			log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -41,11 +44,14 @@ namespace CIVPlayer.Source
 			try
 			{
 				players = rawData["players"].Split(';').ToList();
+                emails = rawData["emails"].Split(';').ToList();
 				gameConfigRows.Clear();
 				for (int i = 0; i < players.Count; i++)
 				{
-					gameConfigRows.Add(new GameConfigListRow(i + 1, players[i]));
+					gameConfigRows.Add(new GameConfigListRow(i + 1, players[i], emails[i]));
 				}
+                fromMailAddress = rawData["frommailaddress"];
+                fromMailPassword = rawData["frommailpassword"];
 				dropBoxExtendedPath = rawData["dropboxextendedpath"];
 				fileNameEnding = rawData["fileending"];
 				saveExtension = rawData["saveextension"];
@@ -54,8 +60,11 @@ namespace CIVPlayer.Source
 			{
 				log.Error("Dropbox config file incorrect!",e);
 				log.Info("Config file should have:");
-				log.Info("players=x,y,z");
-				log.Info("dropboxextendedpath=\foldername");
+				log.Info("players=x;y;z");
+                log.Info("emails=asdf@xy.com;fdsa@xy.com,safd@yx.com");
+                log.Info("frommailaddress=asdf@xy.com");
+                log.Info("frommailpassword=pasword");
+                log.Info("dropboxextendedpath=\foldername");
 				log.Info("fileending=jon");
 				log.Info("saveextension=.Civ5Save");
 				log.Info("tempsaveextendedpath=\foldername");
@@ -75,10 +84,13 @@ namespace CIVPlayer.Source
 		public int Number { get; set; }
 
 		public string Player { get; set; }
-		public GameConfigListRow(int n, string p)
+
+        public string Email { get; set; }
+		public GameConfigListRow(int n, string p, string e)
 		{
 			this.Number = n;
 			this.Player = p;
+            this.Email = e;
 		}
 	}
 }

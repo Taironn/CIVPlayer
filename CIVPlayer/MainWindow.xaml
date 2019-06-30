@@ -49,6 +49,7 @@
                             <GridView>
                                 <GridViewColumn Header="Sorrend" Width="120" DisplayMemberBinding="{Binding Number}" />
                                 <GridViewColumn Header="Játékos" Width="120" DisplayMemberBinding="{Binding Player}" />
+                                <GridViewColumn Header="Email" Width="200" DisplayMemberBinding="{Binding Email}" />
                             </GridView>
                         </ListView.View>
                     </ListView>

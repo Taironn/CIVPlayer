@@ -67,7 +67,9 @@
     <Compile Include="Source\AppConfiguaraion.cs" />
     <Compile Include="Source\AppMain.cs" />
     <Compile Include="Source\GameConfig.cs" />
+    <Compile Include="Source\MailSender.cs" />
     <Compile Include="Source\StateAPI.cs" />
+    <Compile Include="Source\Statistics.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -107,7 +109,9 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Civ5_logo.png" />

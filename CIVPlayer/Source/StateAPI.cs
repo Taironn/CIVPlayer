@@ -210,7 +210,7 @@ namespace CIVPlayer.Source
 				//activeDropBoxSaveFile.Delete();
 				alreadyCopied = true;
 				lastGameFolderChecked = DateTime.Now;
-				UserPassed();
+				//UserPassed();
 				//load();
 			} else if (dialogResult == DialogResult.No)
 			{
