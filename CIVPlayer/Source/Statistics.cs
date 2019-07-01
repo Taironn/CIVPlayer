@@ -58,7 +58,16 @@ namespace CIVPlayer.Source
             }
             else
             {
-                string lastLine = File.ReadLines(file).Last();
+                string lastLine = null;
+                try
+                {
+                    lastLine = File.ReadLines(file).Last();
+                }
+                catch (Exception e)
+                {
+
+                    log.Warn("Could not read statistics file, maybe it was emtpy.", e);
+                }
                 if (lastLine != null)
                 {
                     statisticsData.Add(processLine(lastLine));

@@ -10,9 +10,12 @@
         <TabControl x:Name="tabControl">
             <TabItem x:Name="gameStatus" Header="Helyzet">
                 <Grid x:Name="StatusGrid" Background="#FFE5E5E5">
-                    <Label x:Name="CurrentPlayerLabel" Content="{Binding CurrentPlayer}" ContentStringFormat=" {0} köre van" VerticalAlignment="Top" Height="100" Margin="50,50,50,0" FontSize="30" HorizontalContentAlignment="Center"/>
+                    <Label x:Name="CurrentPlayerLabel" Content="{Binding CurrentPlayer}" ContentStringFormat=" {0} köre van" VerticalAlignment="Top" Height="100" Margin="48,62,52.8,0" FontSize="30" HorizontalContentAlignment="Center"/>
                     <Image x:Name="image" HorizontalAlignment="Center" Margin="0,150,0,0" VerticalAlignment="Bottom"
                            Source="Resources/Civ5_logo.png" MaxHeight="130"/>
+                    <Label x:Name="LastDateLabel" Content="{Binding LastStatisticRow.time}" HorizontalAlignment="Left" Margin="48,10,0,0" VerticalAlignment="Top" Height="30" Width="137"/>
+                    <Label x:Name="LastPlayerLabel" Content="{Binding LastStatisticRow.passingPlayer}" HorizontalAlignment="Left" Margin="185,10,0,0" VerticalAlignment="Top" Height="30" Width="137"/>
+                    <Label x:Name="LastTurnTimeLabel" Content="{Binding LastStatisticRow.roundTime}" HorizontalAlignment="Left" Margin="323,10,0,0" VerticalAlignment="Top" Height="30" Width="137"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Beállítások">

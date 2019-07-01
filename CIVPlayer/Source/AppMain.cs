@@ -144,6 +144,22 @@ namespace CIVPlayer.Source
                 return gameConfig.gameConfigRows;
             }
         }
+
+        private StatisticRow statisticRow;
+        public StatisticRow LastStatisticRow
+        {
+            get
+            {
+                return statisticRow;
+            }
+
+            set
+            {
+                statisticRow = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("LastStatisticRow"));
+            }
+        }
+
         public FileInfo appConfigPath = new FileInfo(Environment.CurrentDirectory + "/Resources/appconfig.bin");
         private MainWindow appWindow;
 
@@ -265,7 +281,7 @@ namespace CIVPlayer.Source
                         FileInfo fiNew = new FileInfo(statFilePath);
                         if (!fiNew.Exists)
                         {
-                            fiNew.Create();
+                            fiNew.Create().Close();
                         }
                         try
                         {
@@ -361,7 +377,7 @@ namespace CIVPlayer.Source
             }
             try
             {
-                statistics.ReadStatistics(true);
+                LastStatisticRow = statistics.ReadStatistics(true);
             }
             catch (Exception e)
             {
@@ -383,7 +399,7 @@ namespace CIVPlayer.Source
             }
             try
             {
-                statistics.WriteStatLine(appConfig.PlayerName);
+                LastStatisticRow = statistics.WriteStatLine(appConfig.PlayerName);
             }
             catch (Exception e)
             {
