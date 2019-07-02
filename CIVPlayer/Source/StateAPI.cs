@@ -48,9 +48,10 @@ namespace CIVPlayer.Source
 				{
 					log.Info("Current player changed from " + currentPlayer + " to " + value);
 					alreadyCopied = false;
+                    bool userPassedNotif = false;
 					if (currentPlayer == appConfig.PlayerName && value != appConfig.PlayerName)
 					{
-						UserPassed();
+                        userPassedNotif = true;
 					}
 					if (currentPlayer != value)
 					{
@@ -66,7 +67,11 @@ namespace CIVPlayer.Source
 							CurrentPlayerChanged();
 						}
 					}
-				}
+                    if (userPassedNotif)
+                    {
+                        UserPassed();
+                    }
+                }
 			}
 		}
 
